@@ -120,7 +120,10 @@ server = MCPServer(
 @server.tool(
     name="query_logs",
     title="检索服务日志",
-    description="【只读】按服务检索日志，可按级别与关键词过滤。重启后的恢复日志也会返回。",
+    description="【只读】按服务检索日志，可按级别与关键词过滤。重启后的恢复日志也会返回。"
+                "keyword 是对日志原文 message 字段的子串匹配，日志里的错误通常以运行时术"
+                "语出现（如 OOMKilled、rss、pool exhausted、timeout），业务词汇（如 5xx、"
+                "登录失败）可能不出现；不确定关键词时先不带 keyword 拉全量，再根据返回内容二次过滤。",
     risk="read",
     annotations={"readOnlyHint": True},
     input_schema={

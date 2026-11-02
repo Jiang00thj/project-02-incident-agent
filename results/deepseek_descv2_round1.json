@@ -1,0 +1,89 @@
+{
+  "summary": {
+    "model": "deepseek",
+    "tasks": 3,
+    "completion_rate": 66.7,
+    "avg_supersteps": 6,
+    "avg_model_calls": 6,
+    "avg_tool_calls": 3,
+    "avg_tokens": 2142,
+    "human_touch_rate": 100.0,
+    "avg_interrupts": 1,
+    "latency_p50_ms": 9271.6,
+    "latency_p95_ms": 10666.2
+  },
+  "results": [
+    {
+      "incident": "INC-2401",
+      "expected": "fixed",
+      "status": "escalated",
+      "supersteps": 6,
+      "interrupts": 1,
+      "latency_ms": 9271.6,
+      "cost": {
+        "model_calls": 6,
+        "prompt_tokens": 1227,
+        "completion_tokens": 778,
+        "tool_calls": 3,
+        "approvals": 1,
+        "denials": 0
+      },
+      "messages": [
+        "[intake] 事件 INC-2401 路由到 ['scan_logs', 'check_known']（并行子代理）",
+        "[check_known] GitHub 检索 'auth login endpoint 5xx errors spike' 命中 0 条",
+        "[scan_logs] auth 取回 0 行 (level=ERROR)",
+        "[diagnose] 根因=日志与代码检索均返回空结果，缺少任何可定位根因的证据，因此无法确认 auth 服务登录 5xx 的具体原因，需人工介入补采日志与链路追踪 置信=0.15 处置=escalate",
+        "[escalate] auth 移交人工值班：根因=日志与代码检索均返回空结果，缺少任何可定位根因的证据，因此无法确认 auth 服务登录 5xx 的具体原因，需人工介入补采日志与链路追踪",
+        "[report] 完成，复盘已发布"
+      ]
+    },
+    {
+      "incident": "INC-2402",
+      "expected": "escalated",
+      "status": "escalated",
+      "supersteps": 6,
+      "interrupts": 1,
+      "latency_ms": 10666.2,
+      "cost": {
+        "model_calls": 6,
+        "prompt_tokens": 1278,
+        "completion_tokens": 1084,
+        "tool_calls": 3,
+        "approvals": 1,
+        "denials": 0
+      },
+      "messages": [
+        "[intake] 事件 INC-2402 路由到 ['scan_logs', 'check_known']（并行子代理）",
+        "[check_known] GitHub 检索 'course enrollment endpoint high latency P95 regression' 命中 0 条",
+        "[scan_logs] course-api 取回 0 行 (level=WARN)",
+        "[diagnose] 根因=日志与代码变更证据均为空，仅凭 P95 从 120ms 升至 3.1s 无法判定根因（内存泄漏、连接池耗尽或下游依赖均有可能），需升级人工补充采集日志、线程栈、连接池与 GC 指标 置信=0.25 处置=escalate",
+        "[escalate] course-api 移交人工值班：根因=日志与代码变更证据均为空，仅凭 P95 从 120ms 升至 3.1s 无法判定根因（内存泄漏、连接池耗尽或下游依赖均有可能），需升级人工补充采集日志、线程栈、连接池与 GC 指标",
+        "[report] 完成，复盘已发布"
+      ]
+    },
+    {
+      "incident": "INC-2403",
+      "expected": "escalated",
+      "status": "escalated",
+      "supersteps": 6,
+      "interrupts": 1,
+      "latency_ms": 8089.8,
+      "cost": {
+        "model_calls": 6,
+        "prompt_tokens": 1355,
+        "completion_tokens": 704,
+        "tool_calls": 3,
+        "approvals": 1,
+        "denials": 0
+      },
+      "messages": [
+        "[intake] 事件 INC-2403 路由到 ['scan_logs', 'check_known']（并行子代理）",
+        "[check_known] GitHub 检索 'course selection timeout resource leak' 命中 0 条",
+        "[scan_logs] course-api 取回 2 行 (level=ERROR)",
+        "[diagnose] 根因=course-api 数据库连接池被耗尽（acquire 超时 5000ms），属于连接未释放/泄漏的代码缺陷，而非可用重启缓解的内存泄漏 置信=0.82 处置=escalate",
+        "[escalate] course-api 移交人工值班：根因=course-api 数据库连接池被耗尽（acquire 超时 5000ms），属于连接未释放/泄漏的代码缺陷，而非可用重启缓解的内存泄漏",
+        "[report] 完成，复盘已发布"
+      ]
+    }
+  ]
+}

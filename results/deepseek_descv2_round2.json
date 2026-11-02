@@ -1,0 +1,89 @@
+{
+  "summary": {
+    "model": "deepseek",
+    "tasks": 3,
+    "completion_rate": 66.7,
+    "avg_supersteps": 6,
+    "avg_model_calls": 6,
+    "avg_tool_calls": 3,
+    "avg_tokens": 2106.3,
+    "human_touch_rate": 100.0,
+    "avg_interrupts": 1,
+    "latency_p50_ms": 8167.1,
+    "latency_p95_ms": 11415.4
+  },
+  "results": [
+    {
+      "incident": "INC-2401",
+      "expected": "fixed",
+      "status": "escalated",
+      "supersteps": 6,
+      "interrupts": 1,
+      "latency_ms": 8167.1,
+      "cost": {
+        "model_calls": 6,
+        "prompt_tokens": 1211,
+        "completion_tokens": 680,
+        "tool_calls": 3,
+        "approvals": 1,
+        "denials": 0
+      },
+      "messages": [
+        "[intake] 事件 INC-2401 路由到 ['scan_logs', 'check_known']（并行子代理）",
+        "[check_known] GitHub 检索 'auth login endpoint 5xx errors spike' 命中 0 条",
+        "[scan_logs] auth 取回 0 行 (level=ERROR)",
+        "[diagnose] 根因=日志与变更记录均为空，无任何可观测证据支撑根因判定，需补充采集并人工介入排查 置信=0.2 处置=escalate",
+        "[escalate] auth 移交人工值班：根因=日志与变更记录均为空，无任何可观测证据支撑根因判定，需补充采集并人工介入排查",
+        "[report] 完成，复盘已发布"
+      ]
+    },
+    {
+      "incident": "INC-2402",
+      "expected": "escalated",
+      "status": "escalated",
+      "supersteps": 6,
+      "interrupts": 1,
+      "latency_ms": 11415.4,
+      "cost": {
+        "model_calls": 6,
+        "prompt_tokens": 1271,
+        "completion_tokens": 1128,
+        "tool_calls": 3,
+        "approvals": 1,
+        "denials": 0
+      },
+      "messages": [
+        "[intake] 事件 INC-2402 路由到 ['scan_logs', 'check_known']（并行子代理）",
+        "[check_known] GitHub 检索 'course enrollment endpoint latency regression P95 slow' 命中 0 条",
+        "[scan_logs] course-api 取回 0 行 (level=WARN)",
+        "[diagnose] 根因=无任何日志或代码变更证据可用，仅知 course-api 选课接口 P95 从 120ms 恶化至 3.1s；更可能是下游依赖或连接池类代码缺陷而非内存泄漏，无法定位根因 置信=0.2 处置=escalate",
+        "[escalate] course-api 移交人工值班：根因=无任何日志或代码变更证据可用，仅知 course-api 选课接口 P95 从 120ms 恶化至 3.1s；更可能是下游依赖或连接池类代码缺陷而非内存泄漏，无法定位根因",
+        "[report] 完成，复盘已发布"
+      ]
+    },
+    {
+      "incident": "INC-2403",
+      "expected": "escalated",
+      "status": "escalated",
+      "supersteps": 6,
+      "interrupts": 1,
+      "latency_ms": 7873.9,
+      "cost": {
+        "model_calls": 6,
+        "prompt_tokens": 1353,
+        "completion_tokens": 676,
+        "tool_calls": 3,
+        "approvals": 1,
+        "denials": 0
+      },
+      "messages": [
+        "[intake] 事件 INC-2403 路由到 ['scan_logs', 'check_known']（并行子代理）",
+        "[check_known] GitHub 检索 'course enrollment timeout resource leak' 命中 0 条",
+        "[scan_logs] course-api 取回 2 行 (level=ERROR)",
+        "[diagnose] 根因=course-api 数据库连接池耗尽（acquire 超时 5000ms），连接泄漏/未释放属代码缺陷，非内存泄漏，重启无效 置信=0.85 处置=escalate",
+        "[escalate] course-api 移交人工值班：根因=course-api 数据库连接池耗尽（acquire 超时 5000ms），连接泄漏/未释放属代码缺陷，非内存泄漏，重启无效",
+        "[report] 完成，复盘已发布"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "summary": {
+    "model": "deepseek",
+    "tasks": 3,
+    "completion_rate": 66.7,
+    "avg_supersteps": 6,
+    "avg_model_calls": 6,
+    "avg_tool_calls": 3,
+    "avg_tokens": 2634.3,
+    "human_touch_rate": 100.0,
+    "avg_interrupts": 1,
+    "latency_p50_ms": 11520.8,
+    "latency_p95_ms": 11581.6
+  },
+  "results": [
+    {
+      "incident": "INC-2401",
+      "expected": "fixed",
+      "status": "escalated",
+      "supersteps": 6,
+      "interrupts": 1,
+      "latency_ms": 11520.8,
+      "cost": {
+        "model_calls": 6,
+        "prompt_tokens": 1526,
+        "completion_tokens": 1066,
+        "tool_calls": 3,
+        "approvals": 1,
+        "denials": 0
+      },
+      "messages": [
+        "[intake] 事件 INC-2401 路由到 ['scan_logs', 'check_known']（并行子代理）",
+        "[check_known] GitHub 检索 'auth login endpoint 5xx error spike' 命中 0 条",
+        "[scan_logs] auth 取回 3 行 (level=ERROR)",
+        "[diagnose] 根因=auth 服务存在内存泄漏，容器反复因 OOMKilled（exit 137）重启（已至 #9），重启无法消除泄漏，5xx 高企 置信=0.78 处置=escalate",
+        "[escalate] auth 移交人工值班：根因=auth 服务存在内存泄漏，容器反复因 OOMKilled（exit 137）重启（已至 #9），重启无法消除泄漏，5xx 高企",
+        "[report] 完成，复盘已发布"
+      ]
+    },
+    {
+      "incident": "INC-2402",
+      "expected": "escalated",
+      "status": "escalated",
+      "supersteps": 6,
+      "interrupts": 1,
+      "latency_ms": 11167.5,
+      "cost": {
+        "model_calls": 6,
+        "prompt_tokens": 1564,
+        "completion_tokens": 1255,
+        "tool_calls": 3,
+        "approvals": 1,
+        "denials": 0
+      },
+      "messages": [
+        "[intake] 事件 INC-2402 路由到 ['scan_logs', 'check_known']（并行子代理）",
+        "[check_known] GitHub 检索 'course enrollment API P95 latency regression' 命中 0 条",
+        "[scan_logs] course-api 取回 3 行 (level=None)",
+        "[diagnose] 根因=course-api 数据库连接池被泄漏/长事务连接占满（96/100 busy，14 个等待者），新请求 acquire 连续 5s 超时，导致选课接口 P95 劣化至 3.1s 置信=0.9 处置=escalate",
+        "[escalate] course-api 移交人工值班：根因=course-api 数据库连接池被泄漏/长事务连接占满（96/100 busy，14 个等待者），新请求 acquire 连续 5s 超时，导致选课接口 P95 劣化至 3.1s",
+        "[report] 完成，复盘已发布"
+      ]
+    },
+    {
+      "incident": "INC-2403",
+      "expected": "escalated",
+      "status": "escalated",
+      "supersteps": 6,
+      "interrupts": 1,
+      "latency_ms": 11581.6,
+      "cost": {
+        "model_calls": 6,
+        "prompt_tokens": 1252,
+        "completion_tokens": 1240,
+        "tool_calls": 3,
+        "approvals": 1,
+        "denials": 0
+      },
+      "messages": [
+        "[intake] 事件 INC-2403 路由到 ['scan_logs', 'check_known']（并行子代理）",
+        "[check_known] GitHub 检索 'course enrollment timeout resource leak' 命中 0 条",
+        "[scan_logs] course-api 取回 0 行 (level=ERROR)",
+        "[diagnose] 根因=日志与代码变更证据均为空，无法证实资源泄漏，选课超时的根因尚未确定，需要补充日志与变更记录后再做判定 置信=0.2 处置=escalate",
+        "[escalate] course-api 移交人工值班：根因=日志与代码变更证据均为空，无法证实资源泄漏，选课超时的根因尚未确定，需要补充日志与变更记录后再做判定",
+        "[report] 完成，复盘已发布"
+      ]
+    }
+  ]
+}

@@ -64,18 +64,13 @@ class DeepSeekModel:
         if not self.api_key:
             raise ModelError("set BENCH_API_KEY (env only, never in files)")
         self.timeout = timeout
-        self.usage = {"model_calls": 0, "prompt_tokens": 0, "completion_tokens": 0}
+        self.usage = {"model_calls": 0, "prompt_tokens": 0, "completion_tokens": 0,
+                      "json_repair_retries": 0}
 
-    def decide(self, node, state):
+    def _chat(self, messages):
         payload = {
             "model": self.model,
-            "messages": [
-                {"role": "system", "content": _system_prompt(node)},
-                {"role": "user", "content": json.dumps(
-                    {k: v for k, v in state.items() if k in (
-                        "incident", "findings", "hypothesis", "iteration", "status")},
-                    ensure_ascii=False, default=str)},
-            ],
+            "messages": messages,
             "response_format": {"type": "json_object"},
             "max_tokens": 512,
             "temperature": 0.0,
@@ -88,20 +83,46 @@ class DeepSeekModel:
         started = time.perf_counter()
         with urllib.request.urlopen(request, timeout=self.timeout) as resp:
             body = json.loads(resp.read().decode())
-        answer = body["choices"][0]["message"].get("content") or "{}"
         usage = body.get("usage", {})
         self.usage["model_calls"] += 1
         self.usage["prompt_tokens"] += usage.get("prompt_tokens", 0)
         self.usage["completion_tokens"] += usage.get("completion_tokens", 0)
         self.usage.setdefault("latency_ms", []).append(
             int((time.perf_counter() - started) * 1000))
-        try:
-            parsed = json.loads(answer)
-        except json.JSONDecodeError as exc:
-            raise ModelError(f"model returned invalid JSON for node {node}: {exc}") from exc
-        if not isinstance(parsed, dict):
-            raise ModelError(f"node {node}: expected JSON object, got {type(parsed).__name__}")
-        return parsed
+        return body["choices"][0]["message"].get("content") or "{}"
+
+    def decide(self, node, state):
+        messages = [
+            {"role": "system", "content": _system_prompt(node)},
+            {"role": "user", "content": json.dumps(
+                {k: v for k, v in state.items() if k in (
+                    "incident", "findings", "hypothesis", "iteration", "status")},
+                ensure_ascii=False, default=str)},
+        ]
+        # DeepSeek 偶发返回截断/非法 JSON（response_format 也不保证）；一次带纠错
+        # 提示的重试。temperature=0 原样复跑只会复现同样的坏输出，所以必须把上一次
+        # 的坏输出喂回去并明确要求只输出合法 JSON。
+        for attempt in range(2):
+            answer = self._chat(messages)
+            try:
+                parsed = json.loads(answer)
+                if isinstance(parsed, dict):
+                    return parsed
+                raise ValueError(f"expected object, got {type(parsed).__name__}")
+            except (json.JSONDecodeError, ValueError) as exc:
+                if attempt == 0:
+                    self.usage["json_repair_retries"] += 1
+                    messages = messages + [
+                        {"role": "assistant", "content": answer},
+                        {"role": "user", "content":
+                            "你上一次的输出不是合法 JSON 对象（错误："
+                            f"{exc}）。请重新回答，只输出一个合法 JSON 对象，"
+                            "不要 markdown 代码块、不要任何解释文字。"},
+                    ]
+                else:
+                    raise ModelError(
+                        f"model returned invalid JSON for node {node} after "
+                        f"1 repair retry: {exc}") from exc
 
 
 def _system_prompt(node):
@@ -110,7 +131,10 @@ def _system_prompt(node):
                    '{"route": ["scan_logs","check_known"] 或其中之一, "severity": "high|medium|low"}。'
                    "route 用数组表示要并行执行的子任务。",
         "scan_logs": "你是日志分析子代理。根据事件选择日志查询参数，返回 JSON："
-                     '{"level": "ERROR|WARN|INFO|null, "keyword": "string 或 null"}。',
+                     '{"level": "ERROR|WARN|INFO|null", "keyword": "string 或 null"}。'
+                     "keyword 是日志原文的子串匹配，错误日志通常用运行时术语"
+                     "（如 OOMKilled、rss、pool exhausted、timeout），业务词（5xx、"
+                     "登录失败）不一定出现；不确定时 keyword 传 null 先拉全量。",
         "check_known": "你是已知问题检索子代理。返回 JSON："
                        '{"keyword": "用于 GitHub issue 检索的英文关键词"}。',
         "diagnose": "你是诊断代理。综合日志证据与已知问题，返回 JSON："
