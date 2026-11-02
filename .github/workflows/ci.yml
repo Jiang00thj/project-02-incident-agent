@@ -1,0 +1,53 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      # 本项目的工具层依赖项目一（MCP 网关 + 协议层），CI 检出到同级目录
+      - uses: actions/checkout@v4
+        with:
+          repository: Jiang00thj/project-01-mcp-gateway
+          path: project-01-mcp-gateway
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: unit tests
+        env:
+          PYTHONIOENCODING: utf-8
+          PYTHONUTF8: "1"
+        run: python -m unittest discover -s tests -v
+      - name: scripted bench
+        env:
+          PYTHONIOENCODING: utf-8
+          PYTHONUTF8: "1"
+        run: python bench.py
+
+  langgraph-parity:
+    # 双引擎对照：确认 minigraph 语义没有漂移（可选依赖，单独 job）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: Jiang00thj/project-01-mcp-gateway
+          path: project-01-mcp-gateway
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements-dev.txt
+      - name: minigraph vs langgraph
+        env:
+          PYTHONIOENCODING: utf-8
+        run: python adapters/langgraph_adapter.py

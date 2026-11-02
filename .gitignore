@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+*.sqlite
+gateway_audit.jsonl
+results_*.json
+.idea/
+.vscode/
+*.log
