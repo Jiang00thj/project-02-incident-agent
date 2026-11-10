@@ -69,7 +69,7 @@ class GatewayTools:
         # in different roots, so both roots must be importable.
         existing = os.environ.get("PYTHONPATH", "")
         parts = [p for p in (_P02, _P01) if not existing or p not in existing.split(os.pathsep)]
-        os.environ["PYTHONPATH"] = os.pathsep.join(parts + ([existing] if existing else ""))
+        os.environ["PYTHONPATH"] = os.pathsep.join(parts + ([existing] if existing else []))
         os.environ.setdefault("PROJECT01_ROOT", _P01)
         mod = _load_project01()
         servers = servers or {
