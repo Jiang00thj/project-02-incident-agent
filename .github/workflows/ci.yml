@@ -27,11 +27,15 @@ jobs:
         env:
           PYTHONIOENCODING: utf-8
           PYTHONUTF8: "1"
+          # runner 上本仓库就是 workspace 根，project-01 在其子目录；
+          # 代码里的路径垫片按"同级目录"解析，必须显式指向真实位置
+          PROJECT01_ROOT: ${{ github.workspace }}/project-01-mcp-gateway
         run: python -m unittest discover -s tests -v
       - name: scripted bench
         env:
           PYTHONIOENCODING: utf-8
           PYTHONUTF8: "1"
+          PROJECT01_ROOT: ${{ github.workspace }}/project-01-mcp-gateway
         run: python bench.py
 
   langgraph-parity:
@@ -50,4 +54,5 @@ jobs:
       - name: minigraph vs langgraph
         env:
           PYTHONIOENCODING: utf-8
+          PROJECT01_ROOT: ${{ github.workspace }}/project-01-mcp-gateway
         run: python adapters/langgraph_adapter.py
