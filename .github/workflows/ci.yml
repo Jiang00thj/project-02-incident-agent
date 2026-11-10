@@ -1,8 +1,5 @@
 name: ci
 
-permissions:
-  contents: write
-
 on:
   push:
     branches: [main]
@@ -33,28 +30,13 @@ jobs:
           # runner 上本仓库就是 workspace 根，project-01 在其子目录；
           # 代码里的路径垫片按"同级目录"解析，必须显式指向真实位置
           PROJECT01_ROOT: ${{ github.workspace }}/project-01-mcp-gateway
-        shell: bash
-        run: |
-          set -o pipefail
-          python -m unittest discover -s tests -v 2>&1 | tee ci_output.txt
+        run: python -m unittest discover -s tests -v
       - name: scripted bench
         env:
           PYTHONIOENCODING: utf-8
           PYTHONUTF8: "1"
           PROJECT01_ROOT: ${{ github.workspace }}/project-01-mcp-gateway
         run: python bench.py
-      - name: push failure log to ci-debug branch
-        if: failure()
-        shell: bash
-        run: |
-          git config user.name "ci-debug-bot"
-          git config user.email "ci-debug-bot@users.noreply.github.com"
-          git fetch origin ci-debug || true
-          git checkout ci-debug 2>/dev/null || git checkout -b ci-debug
-          git checkout ${{ github.sha }} -- . 2>/dev/null || true
-          git add ci_output.txt
-          git commit -m "ci failure output (${{ github.sha }})" || exit 0
-          git push origin ci-debug --force
 
   langgraph-parity:
     # 双引擎对照：确认 minigraph 语义没有漂移（可选依赖，单独 job）
